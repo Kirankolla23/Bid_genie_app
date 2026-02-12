@@ -24,7 +24,7 @@ REGION_OPTIONS = [1.0, 1.2, 1.5]
 def load_models():
     """Loads the serialized model files from the repository."""
     try:
-        # These names MUST match the files in your GitHub repo
+        # Load the files generated today
         scaler_cls = joblib.load('final_scaler.pkl')
         base_cls = joblib.load('final_base_models_dict.pkl')
         meta_cls = joblib.load('final_meta_model.pkl')
@@ -48,7 +48,7 @@ scaler_class, base_class, meta_class, scaler_reg, base_reg, meta_reg = load_mode
 # 2. HELPER FUNCTIONS
 # ==========================================
 def smart_fill_missing_features(input_df, scaler):
-    """Fills missing columns using the median values from training state."""
+    """Fills missing columns using the median values from training (RobustScaler)."""
     expected_cols = scaler.feature_names_in_
     
     if hasattr(scaler, 'center_'): defaults = scaler.center_
@@ -70,7 +70,7 @@ def smart_fill_missing_features(input_df, scaler):
     return input_df, expected_cols
 
 def predict_ai_cost(input_df, scaler, base_models, meta_model):
-    """Predicts Project Cost using the Regressor model stack."""
+    """Predicts Project Cost using the Regressor Stacking model."""
     if not all([scaler, base_models, meta_model]): return None
     expected_reg = scaler.feature_names_in_
     input_filled, _ = smart_fill_missing_features(input_df.copy(), scaler)
@@ -91,7 +91,7 @@ def predict_ai_cost(input_df, scaler, base_models, meta_model):
 
 @st.cache_resource
 def get_system_explainer(_base_models, _meta_model, _scaler):
-    """Wraps the stacking system for SHAP interpretation."""
+    """Initializes SHAP explainer for the full stacking system."""
     def full_system_predict(X_scaled_array):
         p_rf = _base_models['rf'].predict_proba(X_scaled_array)[:, 1]
         p_xgb = _base_models['xgb'].predict_proba(X_scaled_array)[:, 1]
@@ -111,18 +111,20 @@ if scaler_class and base_class and meta_class:
     system_explainer = get_system_explainer(base_class, meta_class, scaler_class)
 
 def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
-    """The Final Corrected Simulation Engine that fixes the 16.3% error."""
+    """Core logic to ensure the model responds to bid price changes."""
     if not all([scaler, base_models, meta_model]): return None, None, None, None
     
-    # --- CORE FIX: Use your verified feature list ---
+    # 1. RETRIEVE THE EXACT ORDER THE MODEL EXPECTS
     expected_cols = scaler.feature_names_in_
     
+    # 2. Determine Cost
     cost = 100.0
     if 'total_cost_estimate_crores' in input_df_raw.columns:
         cost = input_df_raw['total_cost_estimate_crores'].values[0]
     elif 'Estimated_Cost' in input_df_raw.columns:
         cost = input_df_raw['Estimated_Cost'].values[0]
 
+    # 3. Fill Missing Data
     base_input_df, _ = smart_fill_missing_features(input_df_raw.copy(), scaler)
     
     possible_markups = np.arange(0.01, 0.30, 0.005) 
@@ -132,12 +134,12 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
         current_bid = cost * (1 + markup)
         input_data = base_input_df.copy()
         
-        # --- CAUSE CORRECTION: Exact Name assignment ---
+        # 4. MAP DATA TO EXACT NOTEBOOK NAMES
         input_data['My_Bid_Price_Crores'] = current_bid
         input_data['My_Markup'] = markup
         input_data['total_cost_estimate_crores'] = cost
         
-        # --- THE FIX: Force strict column sequence ---
+        # 5. ENFORCE ORDER: Align columns exactly to the Scaler's training memory
         input_data_final = input_data.reindex(columns=expected_cols).fillna(0)
         input_data_scaled = scaler.transform(input_data_final)
 
@@ -148,6 +150,7 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
             p_svc = base_models['svc'].predict_proba(input_data_scaled)[:, 1][0]
         except: return None, None, None, None
 
+        # Stacking logic
         meta_features = pd.DataFrame({'RF_Prob': [p_rf], 'XGB_Prob': [p_xgb], 'Log_Prob': [p_log], 'SVC_Prob': [p_svc]})
         inner_m = getattr(meta_model, 'estimator', getattr(meta_model, 'base_estimator', meta_model))
         if hasattr(inner_m, 'feature_names_in_'):
@@ -183,7 +186,7 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
 # ==========================================
 st.title("🏗️ Bid Genie: Construction Bid Optimizer")
 
-# Session Persistence
+# Session State Persistence
 if 'refresh_id' not in st.session_state: st.session_state['refresh_id'] = 0
 if 'project_data' not in st.session_state: st.session_state['project_data'] = pd.DataFrame()
 if 'cost_val' not in st.session_state: st.session_state['cost_val'] = 480.7
@@ -218,7 +221,7 @@ tech_score = st.sidebar.slider("Tech Score", 0, 100, value=st.session_state['tec
 
 st.session_state.update({'cost_val': input_cost, 'markup_val': manual_markup, 'comp_val': competitors, 'dur_val': duration, 'tech_val': tech_score})
 
-# Prepare Dataframe
+# Prepare Dataframe for the model
 if not st.session_state['project_data'].empty: f_df = st.session_state['project_data'].copy()
 else: f_df = pd.DataFrame([{}])
 
@@ -230,9 +233,9 @@ f_df['No_of_Competitors'] = competitors
 f_df['Technical_Score'] = tech_score
 
 if st.button(" Analyze Bid"):
-    if not scaler_class: st.error("Models not found in repo.")
+    if not scaler_class: st.error("Models not found. Upload 'final_scaler.pkl' etc. to GitHub.")
     else:
-        with st.spinner('Synchronizing and calculating...'):
+        with st.spinner('Calculating probabilities...'):
             best, df_sim, best_scaled, best_raw = optimize_bid_with_stacking(f_df, base_class, meta_class, scaler_class)
 
         if best is not None:
@@ -245,7 +248,7 @@ if st.button(" Analyze Bid"):
             c3.metric("Win Prob", f"{wp*100:.1f}%")
             c4.metric("Exp. Profit", f"₹{best['Expected_Profit']:.2f} Cr")
             
-            t1, t2, t3 = st.tabs(["Strategy Curve", "Risk Metrics", "SHAP Waterfall"])
+            t1, t2, t3 = st.tabs(["Optimization Curve", "Risk Profile", "SHAP Impact Plot"])
             with t1:
                 fig, ax = plt.subplots(figsize=(10, 4))
                 ax.plot(df_sim['Markup_Percent'], df_sim['Expected_Profit'], color='green', lw=2, label="Profit")
