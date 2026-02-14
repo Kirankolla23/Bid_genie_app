@@ -385,7 +385,7 @@ if st.sidebar.button(" Estimate Cost with AI"):
 
 # --- NEW: WINNER'S CURSE QUOTE ---
 st.sidebar.markdown("---")
-st.sidebar.info("💡 **Did you know?** In bidding auctions, the 'winner' is often the person who most underestimated the costs. Therefore, winning can actually mean losing money. This tool helps prevent the **Winner's Curse** using CVaR analysis.")
+st.sidebar.info("💡 **Did you know?** In bidding auctions, the 'winner' is often the person who most underestimated the costs. Therefore, winning can actually mean losing money. This tool helps prevent the **Winner's Curse**.")
 
 # --- MAIN ANALYSIS BUTTON ---
 if st.button(" Analyze Bid"):
@@ -547,3 +547,4 @@ if st.button(" Analyze Bid"):
                 st.pyplot(fig)
             
             st.download_button("📥 Download Report", df_sim.to_csv().encode('utf-8'), "bid_report.csv")
+
