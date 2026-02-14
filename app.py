@@ -160,7 +160,7 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
     possible_markups = np.arange(0.01, 0.20, 0.005) 
     results = []
     
-    # --- THE FIX: Seed must be OUTSIDE the loop to match Notebook ---
+    # --- Seed OUTSIDE loop to match Notebook ---
     np.random.seed(42) 
     
     for markup in possible_markups:
@@ -195,7 +195,7 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
 
         win_prob = meta_model.predict_proba(meta_features)[:, 1][0] 			
         
-        # --- Randomness Logic (Now synced with Notebook) ---
+        # --- Randomness Logic (Synced with Notebook) ---
         simulated_costs = np.random.normal(loc=cost, scale=cost * 0.05, size=1000)
         simulated_profits_if_won = current_bid - simulated_costs
         risk_prob = np.mean(simulated_profits_if_won < 0)
@@ -208,11 +208,15 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
         var_95 = np.percentile(simulated_profits_if_won, 5)
         cvar_95 = simulated_profits_if_won[simulated_profits_if_won <= var_95].mean()
         
+        # --- NEW: Potential Profit (Gross) ---
+        potential_profit = current_bid - cost
+
         results.append({
             'Markup_Percent': markup * 100,
             'Bid_Price': current_bid,
             'Final_Win_Prob': win_prob, 
-            'Expected_Profit': (current_bid - cost) * win_prob,
+            'Expected_Profit': potential_profit * win_prob,
+            'Potential_Profit': potential_profit, # <--- Added Gross Profit
             'Risk_of_Loss_Prob': risk_prob * 100,
             'Lower_Bound': lower_bound_sim,   
             'Upper_Bound': upper_bound_sim, 
@@ -385,7 +389,7 @@ if st.sidebar.button(" Estimate Cost with AI"):
 
 # --- NEW: WINNER'S CURSE QUOTE ---
 st.sidebar.markdown("---")
-st.sidebar.info("💡 **Did you know?** In bidding auctions, the 'winner' is often the person who most underestimated the costs. Therefore, winning can actually mean losing money. This tool helps prevent the **Winner's Curse**.")
+st.sidebar.info("💡 **Did you know?** In bidding auctions, the 'winner' is often the person who most underestimated the costs. Therefore, winning can actually mean losing money. This tool helps prevent the **Winner's Curse** using CVaR analysis.")
 
 # --- MAIN ANALYSIS BUTTON ---
 if st.button(" Analyze Bid"):
@@ -427,7 +431,13 @@ if st.button(" Analyze Bid"):
             # --- GRAPH 1: Strategy ---
             with t1:
                 fig, ax = plt.subplots(figsize=(10, 4))
+                
+                # 1. Expected Profit
                 ax.plot(df_sim['Markup_Percent'], df_sim['Expected_Profit'], color='green', lw=3, label='Exp. Profit')
+                
+                # 2. NEW: Potential Profit (Gross)
+                ax.plot(df_sim['Markup_Percent'], df_sim['Potential_Profit'], color='grey', ls='--', lw=1.5, label='Potential Profit (Gross)')
+                
                 ax.set_ylabel("Profit (Cr)", color='green')
                 ax.axvline(manual_markup, color='black', ls=':', label='Actual Markup')
 
@@ -547,4 +557,3 @@ if st.button(" Analyze Bid"):
                 st.pyplot(fig)
             
             st.download_button("📥 Download Report", df_sim.to_csv().encode('utf-8'), "bid_report.csv")
-
