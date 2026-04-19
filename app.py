@@ -16,7 +16,7 @@ except ImportError:
     pass
 
 #  PAGE CONFIGURATION 
-st.set_page_config(page_title="Bid Genie", layout="wide", page_icon="🏗️")
+st.set_page_config(page_title="Bid Genie", layout="wide")
 
 REGION_OPTIONS = [1.0, 1.2, 1.5]
 
@@ -31,7 +31,7 @@ def load_models():
         base_cls = joblib.load('final_base_models_dict.pkl')
         meta_cls = joblib.load('final_meta_model.pkl')
     except Exception as e:
-        st.error(f"⚠️ Classifier Load Error: {e}")
+        st.error(f" Classifier Load Error: {e}")
         return None, None, None, None, None, None, None
 
     # Load Regressors
@@ -42,7 +42,7 @@ def load_models():
             base_reg = joblib.load('final_base_models_reg_dict.pkl')
             meta_reg = joblib.load('final_meta_model_reg.pkl')
         except Exception as e:
-            st.warning(f"⚠️ Regressor found but failed to load: {e}")
+            st.warning(f"Regressor found but failed to load: {e}")
 
     # Load FROZEN Background Data
     shap_background = None
@@ -50,9 +50,9 @@ def load_models():
         try:
             shap_background = joblib.load('frozen_shap_background.pkl')
         except Exception as e:
-            st.warning(f"⚠️ Frozen SHAP background found but failed to load: {e}")
+            st.warning(f" Frozen SHAP background found but failed to load: {e}")
     else:
-        st.error("❌ CRITICAL: 'frozen_shap_background.pkl' is MISSING. Please move it to this folder.")
+        st.error("CRITICAL: 'frozen_shap_background.pkl' is MISSING. Please move it to this folder.")
 
     return scaler_cls, base_cls, meta_cls, scaler_reg, base_reg, meta_reg, shap_background
 
@@ -134,7 +134,7 @@ def get_system_explainer(_base_models, _meta_model, _scaler, _frozen_bg):
         background = _frozen_bg
     else:
         
-        st.warning("⚠️ Using fallback Zero-Background. Move 'frozen_shap_background.pkl' to app folder to fix graphs.")
+        st.warning(" Using fallback Zero-Background. Move 'frozen_shap_background.pkl' to app folder to fix graphs.")
         n_features = len(_scaler.feature_names_in_)
         background = np.zeros((1, n_features)) 
 
@@ -227,7 +227,7 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
 
 # USER INTERFACE
 
-st.title("🏗️ Bid Genie: Construction Bid Optimizer")
+st.title(" Bid Genie: Construction Bid Optimizer")
 
 default_keys = {
     'cost_val': 100.0, 'markup_val': 0.0, 'dur_val': 730, 'comp_val': 5, 
@@ -273,7 +273,7 @@ def process_upload():
         except Exception as e:
             st.error(f"Error parsing file: {e}")
 
-st.sidebar.header("📂 Data Source")
+st.sidebar.header(" Data Source")
 st.sidebar.file_uploader(
     "Upload Excel/CSV (Model Ready)", 
     type=['csv', 'xlsx', 'xls'], 
@@ -286,7 +286,7 @@ if not st.session_state['project_data'].empty:
         st.dataframe(st.session_state['project_data'].head(1).T)
 
 st.sidebar.markdown("---")
-st.sidebar.header("📝 Project Parameters")
+st.sidebar.header(" Project Parameters")
 
 rid = st.session_state['refresh_id']
 
@@ -360,7 +360,7 @@ if st.sidebar.button(" Estimate Cost with AI"):
              st.rerun()
 
 st.sidebar.markdown("---")
-st.sidebar.info("💡 **Did you know?** In bidding auctions, the 'winner' is often the person who most underestimated the costs. This tool helps prevent the **Winner's Curse**.")
+st.sidebar.info(" Game Theory Proof: In the bidding auctions, the 'winner' is often the person who most underestimated the costs. This tool helps prevent the **Winner's Curse**.")
 
 if st.button(" Analyze Bid"):
     if not scaler_class:
@@ -427,7 +427,7 @@ if st.button(" Analyze Bid"):
                 ax.legend(lines + lines2, labels + labels2, loc='upper right')
                 
                 st.pyplot(fig)
-                st.markdown("### 📊 Strategy Data Table")
+                st.markdown(" Strategy Data Table")
                 st.dataframe(df_sim[['Markup_Percent', 'Bid_Price', 'Expected_Profit', 'Final_Win_Prob', 'CVaR_95']].style.background_gradient(cmap='Greens', subset=['Expected_Profit']))
                 
             with t2:
@@ -451,7 +451,7 @@ if st.button(" Analyze Bid"):
                 ax.legend(lines + lines2, labels + labels2, loc='center right')
                 
                 st.pyplot(fig)
-                st.markdown("### ⚠️ Risk Analysis Data")
+                st.markdown(" Risk Analysis Data")
                 st.dataframe(df_sim[['Markup_Percent', 'Risk_of_Loss_Prob', 'Expected_Profit', 'CVaR_95']].style.background_gradient(cmap='Reds', subset=['Risk_of_Loss_Prob']))
 
             with t3:
