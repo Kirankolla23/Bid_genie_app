@@ -282,7 +282,7 @@ st.sidebar.file_uploader(
 )
 
 if not st.session_state['project_data'].empty:
-    with st.sidebar.expander("🔍 Input Preview", expanded=False):
+    with st.sidebar.expander("Input Preview", expanded=False):
         st.dataframe(st.session_state['project_data'].head(1).T)
 
 st.sidebar.markdown("---")
@@ -323,7 +323,7 @@ final_input_df['time_for_completion_days'] = duration
 final_input_df['No_of_Competitors'] = competitors
 final_input_df['Technical_Score'] = tech_score
 
-with st.sidebar.expander("🔧 Technical Details"):
+with st.sidebar.expander("Technical Details"):
     c1, c2 = st.columns(2)
     ballasted_track = c1.number_input("Length of Ballasted Track (tkm)", 0.0, 1000.0, get_val_adv('length of ballasted track (tkm)', 0.0))
     dlp_days = c2.number_input("DLP Period", 0, 2000, int(get_val_adv('dlp_period_days', 365)))
@@ -517,4 +517,4 @@ if st.button(" Analyze Bid"):
                 
                 st.pyplot(fig)
             
-            st.download_button("📥 Download Report", df_sim.to_csv().encode('utf-8'), "bid_report.csv")
+            st.download_button(" Download the Report", df_sim.to_csv().encode('utf-8'), "bid_report.csv")
