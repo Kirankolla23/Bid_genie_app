@@ -408,8 +408,8 @@ if st.button(" Analyze Bid"):
             c4.metric("Exp. Profit", f"₹{best['Expected_Profit']:.2f} Cr")
             c5.metric("CVaR (Risk)", f"₹{best['CVaR_95']:.2f} Cr", delta_color="inverse")
             
-            with st.expander(" Debug: Why this probability?", expanded=False):
-                st.write("**Base Model Probabilities:**")
+            with st.expander(" Debug: How this probability came?", expanded=False):
+                st.write("**Base Model Predictions (these are multiplied with meta-model weights):**")
                 cols = st.columns(4)
                 cols[0].metric("RF", f"{best['DEBUG_RF']:.4f}")
                 cols[1].metric("XGB", f"{best['DEBUG_XGB']:.4f}")
