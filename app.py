@@ -27,7 +27,7 @@ st.markdown("""
     .architect-signature {
         position: fixed;
         bottom: 10px;
-        right: 20px;
+        left: 50%;
         color: #B59871;
         font-family: 'Courier New', Courier, monospace;
         font-size: 12px;
