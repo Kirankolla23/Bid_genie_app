@@ -383,7 +383,7 @@ if st.sidebar.button(" Estimate Cost with AI"):
              st.rerun()
 
 st.sidebar.markdown("---")
-st.sidebar.info(" Game Theory Proof: In the bidding auctions, the winner is often the person who most underestimated the costs. This tool helps to prevent the **Winner's Curse**.")
+st.sidebar.info(" Game Theory Concept: In the bidding auctions, the winner is often the person who most underestimated the costs. This tool helps to prevent the **Winner's Curse**.")
 
 if st.button(" Analyze Bid"):
     if not scaler_class:
