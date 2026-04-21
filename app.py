@@ -16,16 +16,39 @@ except ImportError:
     pass
 
 #  PAGE CONFIGURATION 
-st.set_page_config(page_title="Bid Genie", layout="wide")
+st.set_page_config(page_title="Bid Genie", layout="wide", page_icon="🤖")
 
 REGION_OPTIONS = [1.0, 1.2, 1.5]
+
+# signature
+
+st.markdown("""
+    <style>
+    .architect-signature {
+        position: fixed;
+        bottom: 10px;
+        right: 20px;
+        color: #B59871;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        opacity: 0.75;
+        z-index: 9999; /* This ensures it stays on top of all charts */
+    }
+    .architect-signature:hover {
+        opacity: 1.0;
+        color: #FF4B4B; 
+    }
+    </style>
+    <div class="architect-signature">
+        Engineered by Kiran Kumar
+""", unsafe_allow_html=True)
 
 
 # MODEL LOADING
 
 @st.cache_resource
 def load_models():
-    # Load Classifiers
+    # Classifier loading
     try:
         scaler_cls = joblib.load('final_scaler.pkl')
         base_cls = joblib.load('final_base_models_dict.pkl')
@@ -34,7 +57,7 @@ def load_models():
         st.error(f" Classifier Load Error: {e}")
         return None, None, None, None, None, None, None
 
-    # Load Regressors
+    # Regressor loading
     scaler_reg, base_reg, meta_reg = None, None, None
     if os.path.exists('final_scaler_reg.pkl'):
         try:
@@ -227,7 +250,7 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
 
 # USER INTERFACE
 
-st.title(" Bid Genie: Construction Bid Optimizer")
+st.title(" Bid Genie: Construction Bid Optimizer", help="👨🏻‍💻 The Aladdin who found this Genie: Kiran Kumar")
 
 default_keys = {
     'cost_val': 100.0, 'markup_val': 0.0, 'dur_val': 730, 'comp_val': 5, 
@@ -360,7 +383,7 @@ if st.sidebar.button(" Estimate Cost with AI"):
              st.rerun()
 
 st.sidebar.markdown("---")
-st.sidebar.info(" Game Theory Proof: In the bidding auctions, the 'winner' is often the person who most underestimated the costs. This tool helps prevent the **Winner's Curse**.")
+st.sidebar.info(" Game Theory Proof: In the bidding auctions, the winner is often the person who most underestimated the costs. This tool helps to prevent the **Winner's Curse**.")
 
 if st.button(" Analyze Bid"):
     if not scaler_class:
