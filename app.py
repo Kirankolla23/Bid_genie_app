@@ -250,7 +250,7 @@ def optimize_bid_with_stacking(input_df_raw, base_models, meta_model, scaler):
 
 # USER INTERFACE
 
-st.title(" Bid Genie: Construction Bid Optimizer", help="👨🏻‍💻 The Aladdin who found this Genie: Kiran Kumar")
+st.title(" 🤖 Bid Genie: Construction Bid Optimizer", help="👨🏻‍💻 The Aladdin who found this Genie: Kiran Kumar")
 
 default_keys = {
     'cost_val': 100.0, 'markup_val': 0.0, 'dur_val': 730, 'comp_val': 5, 
@@ -296,7 +296,7 @@ def process_upload():
         except Exception as e:
             st.error(f"Error parsing file: {e}")
 
-st.sidebar.header(" Data Source")
+st.sidebar.header(" 🗂️ Data Source")
 st.sidebar.file_uploader(
     "Upload Excel/CSV (Model Ready)", 
     type=['csv', 'xlsx', 'xls'], 
