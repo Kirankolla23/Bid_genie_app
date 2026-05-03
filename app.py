@@ -396,7 +396,7 @@ if st.button(" Analyze Bid"):
 
         if best is not None:
             win_p = best['Final_Win_Prob']
-            color = "#27ae60" if win_p >= 0.30 and best['Expected_Profit'] > 0 else "#e74c3c"
+            color = "#27ae60" if win_p >= 0.39 and best['Expected_Profit'] > 0 else "#e74c3c"
             msg = "GO FOR BID" if color == "#27ae60" else " NO-BID"
 
             st.markdown(f"<h2 style='color:{color}'>{msg}</h2>", unsafe_allow_html=True)
